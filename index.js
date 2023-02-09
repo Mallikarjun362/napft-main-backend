@@ -1,11 +1,15 @@
 // const express = require("express");
 import express from "express";
 import { NFT_model } from "./MongoDB_schemas.js";
-
-
+import bodyParser from "body-parser";
+import cors from 'cors';
 
 const app = express()
 app.use(express.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.use(cors())
 
 //Home
 app.get("/", (req, res) => {
@@ -15,7 +19,7 @@ app.get("/", (req, res) => {
 
 // NFT - {GET , POST}
 app.post("/api/nft", (req, res) => {
-
+    console.log("post-nft", req.body);
     try {
         const nft_data = {
             title: req.body.title, //required
@@ -39,17 +43,18 @@ app.post("/api/nft", (req, res) => {
             comments: [], //initial-default
         };
         const temp = new NFT_model({ ...nft_data });
-        temp.save().then((responce)=>{
+        temp.save().then((responce) => {
             res.status(200).send(temp);
-        }).catch((error)=>{
+        }).catch((error) => {
             res.status(400).send(error);
         });
     } catch (error) {
-        // res.status(400).send(error);
+        res.status(400).send(error);
     }
 });
 
 app.get("/api/nft", (req, res) => {
+    console.log("nft", req.body);
     try {
         if (!("start" in req.body)) {
             res.send("<h1>Empty parameters<h1>");
