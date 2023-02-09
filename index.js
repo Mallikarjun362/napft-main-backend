@@ -39,10 +39,13 @@ app.post("/api/nft", (req, res) => {
             comments: [], //initial-default
         };
         const temp = new NFT_model({ ...nft_data });
-        temp.save();
-        res.send(temp);
+        temp.save().then((responce)=>{
+            res.status(200).send(temp);
+        }).catch((error)=>{
+            res.status(400).send(error);
+        });
     } catch (error) {
-        res.status(500).send(error);
+        // res.status(400).send(error);
     }
 });
 
