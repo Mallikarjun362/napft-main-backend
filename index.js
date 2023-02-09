@@ -16,28 +16,28 @@ app.get("/",(req,res)=>{
 // NFT - {GET , POST}
 app.post("/api/nft", (req, res) => {
 
-    const nft_data = {
-        title: req.body.title, //required
-        price: req.body.price, //required
-        IPFS_hash: req.body.IPFS_Hash, //required
-        NFT_token_ID: req.body.NFT_token_ID, //required
-        owner_metamask_id: req.body.owner_metamask_id, //required
-        creator_metamask_id: req.body.creator_metamask_id, //required
-
-        tags: [], //initial-default
-        votes: [], //initial-default
-        description: "", //initial-default
-        transaction_history: [], //initial-default
-        date_created: Date(), //initial-default : Today
-        image_feature_representation: [], //initla-default
-        primary_category: "uncategorized", //initial-default
-        price_timeline: [], //initial-default
-        trend_number: Math.floor(Math.random() * 100), //initial-default
-        media_type: 'image', //initial-default
-        view_count: 0, //initial-default
-        comments: [], //initial-default
-    };
     try {
+        const nft_data = {
+            title: req.body.title, //required
+            price: req.body.price, //required
+            IPFS_hash: req.body.IPFS_hash, //required
+            NFT_token_ID: req.body.NFT_token_ID, //required
+            owner_metamask_id: req.body.owner_metamask_id, //required
+            creator_metamask_id: req.body.creator_metamask_id, //required
+    
+            tags: [], //initial-default
+            votes: [], //initial-default
+            description: "", //initial-default
+            transaction_history: [], //initial-default
+            date_created: Date(), //initial-default : Today
+            image_feature_representation: [], //initla-default
+            primary_category: "uncategorized", //initial-default
+            price_timeline: [], //initial-default
+            trend_number: Math.floor(Math.random() * 100), //initial-default
+            media_type: 'image', //initial-default
+            view_count: 0, //initial-default
+            comments: [], //initial-default
+        };
         const temp = new NFT_model({ ...nft_data });
         temp.save();
         res.send(temp);
@@ -65,3 +65,4 @@ app.get("/api/nft", (req, res) => {
 })
 
 app.listen(3000)
+
