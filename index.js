@@ -48,6 +48,9 @@ app.post("/api/nft", (req, res) => {
 
 app.get("/api/nft", (req, res) => {
     if (req.body.start === req.body.end) {
+        if(!(req.body)){
+            res.send("<h1>Empty parameters<h2>");
+        }
         NFT_model.find({ NFT_token_ID: { $eq: req.body.start } }, (err, result) => {
             if (err) {
                 res.sendStatus(400);
