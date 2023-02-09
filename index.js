@@ -8,8 +8,8 @@ const app = express()
 app.use(express.json());
 
 //Home
-app.get("/",(req,res)=>{
-    req.send("<h1>Hello Napft Backend</h1>")
+app.get("/", (req, res) => {
+    res.send("<h1>Hello Napft Backend</h1>")
 })
 
 
@@ -24,7 +24,7 @@ app.post("/api/nft", (req, res) => {
             NFT_token_ID: req.body.NFT_token_ID, //required
             owner_metamask_id: req.body.owner_metamask_id, //required
             creator_metamask_id: req.body.creator_metamask_id, //required
-    
+
             tags: [], //initial-default
             votes: [], //initial-default
             description: "", //initial-default
@@ -47,23 +47,29 @@ app.post("/api/nft", (req, res) => {
 });
 
 app.get("/api/nft", (req, res) => {
-    if (req.body.start === req.body.end) {
-        if(!(req.body)){
-            res.send("<h1>Empty parameters<h2>");
+    try {
+        if (!("start" in req.body)) {
+            res.send("<h1>Empty parameters<h1>");
+            return;
         }
-        NFT_model.find({ NFT_token_ID: { $eq: req.body.start } }, (err, result) => {
-            if (err) {
-                res.sendStatus(400);
-            } else {
-                res.send(result);
-            }
-        });
-    } else {
-        NFT_model.find({ NFT_token_ID: { $gte: req.body.start, $lte: req.body.end } }, (err, data) => {
-            if (err) { res.sendStatus(400) } else {
-                res.send(data);
-            }
-        });
+        if (req.body.start === req.body.end) {
+            NFT_model.find({ NFT_token_ID: { $eq: req.body.start } }, (err, result) => {
+                if (err) {
+                    res.sendStatus(400);
+                } else {
+                    res.send(result);
+                }
+            });
+        } else {
+            NFT_model.find({ NFT_token_ID: { $gte: req.body.start, $lte: req.body.end } }, (err, data) => {
+                if (err) { res.sendStatus(400) } else {
+                    res.send(data);
+                }
+            });
+        }
+    } catch (error) {
+        res.send("<h1>Error Occured - [GET]<h1>")
+        console.log(error);
     }
 })
 
