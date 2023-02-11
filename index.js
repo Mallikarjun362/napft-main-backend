@@ -57,7 +57,7 @@ app.get("/api/nft", (req, res) => {
     console.log("nft", req.body);
     try {
         if (!("start" in req.body)) {
-            res.status(400).send("<h1>Empty parameters<h1>");
+            res.status(400).send(`<h1>Empty parameters ${req.body}<h1>`);
             return;
         }
         if (req.body.start === req.body.end) {
