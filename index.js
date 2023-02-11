@@ -54,14 +54,14 @@ app.post("/api/nft", (req, res) => {
 });
 
 app.get("/api/nft", (req, res) => {
-    console.log("nft", req.body);
     try {
-        if (!("start" in req.body)) {
-            res.status(400).send({msg:`<h1>Empty parameters ${req.body}<h1>`,body:req.body});
-            return;
+        if(!("start" in req.query)){
+            res.status(400).send("<h1>Empty parameters<h2>")
         }
-        if (req.body.start === req.body.end) {
-            NFT_model.find({ NFT_token_ID: { $eq: req.body.start } }, (err, result) => {
+        // const start = req.query.start
+        // const end = req.query.end
+        if (req.query.start === req.query.end) {
+            NFT_model.find({ NFT_token_ID: { $eq: req.query.start } }, (err, result) => {
                 if (err) {
                     res.sendStatus(400);
                 } else {
@@ -69,7 +69,7 @@ app.get("/api/nft", (req, res) => {
                 }
             });
         } else {
-            NFT_model.find({ NFT_token_ID: { $gte: req.body.start, $lte: req.body.end } }, (err, data) => {
+            NFT_model.find({ NFT_token_ID: { $gte: req.query.start, $lte: req.query.end } }, (err, data) => {
                 if (err) { res.sendStatus(400) } else {
                     res.send(data);
                 }
