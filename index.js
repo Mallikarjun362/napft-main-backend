@@ -2,9 +2,9 @@
 import express from "express";
 import bodyParser from "body-parser";
 import cors from 'cors';
-import {default as main_router} from './A1_routes/index_routes.js';
-import { PORT } from "./C2_utils/constants.js";
-import './C1_config/database_config.js'
+import {default as main_router} from './src/A1_routes/index_routes.js';
+import { PORT } from "./src/C2_utils/constants.js";
+import './src/C1_config/database_config.js'
 // Create Express App
 const app = express()
 
