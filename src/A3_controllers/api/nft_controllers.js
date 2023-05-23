@@ -152,7 +152,7 @@ export async function create(req, res) {
             owner_metamask_ID: ele.owner_metamask_ID,
             price: ele.price,
             // Optional
-            is_public: ele.is_public,
+            is_public: ele.is_public ? ele.is_public : true,
             media_type: ele.media_type ? ele.media_type : 'image',
             description: ele.description ? ele.description : "",
             date_created: ele.date_created ? Date(ele.date_created) : Date.now(),
@@ -191,12 +191,14 @@ export async function create(req, res) {
             },
             section_additional_info: {
                 tags: nft.tags,
+                // The below properties are not set manually
                 // votes_count: 0,
                 // views: [],
                 // comments: [],
             },
             section_services_info: {
                 resnet50_lantent_space_vector: nft.resnet50_lantent_space_vector,
+                // The below property is not set manually
                 // cached_resnet50_recommendations: []
             }
         });
