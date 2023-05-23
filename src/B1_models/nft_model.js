@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import connection from '../C1_config/database_config.js';
 // Field Validators
 const validate_price_timeline = (v) => v.length > 0;
 const validate_transaction_history = (v) => v.length > 0;
@@ -83,12 +84,23 @@ const NFT_schema = new mongoose.Schema({
             },
             default: []
         },
+        // cached_resnet50_recommendations: {
+        //     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NFT' }],
+        //     default: []
+        // }
         cached_resnet50_recommendations: {
-            type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NFT' }],
-            default: []
+            type: [{
+                created_on: Date,
+                recommendations: [{
+                    distance: Number,
+                    NFT_token_ID: Number,
+                    ref_ID: { type: mongoose.Schema.Types.ObjectId, ref: 'NFT' }
+                }]
+            }],
+            default: [],
         }
     }
 });
 
-const NFT_model = mongoose.model("NFT", NFT_schema);
+const NFT_model = connection.model("NFT", NFT_schema);
 export default NFT_model;

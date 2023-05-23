@@ -1,3 +1,4 @@
+// Contains all the constants used in this application.
 export const main_mongodb_uri = "mongodb+srv://napftadmin:napftadmin@cluster0.4xthvhw.mongodb.net/?retryWrites=true&w=majority";
 export const old_mongodb_uri = "mongodb+srv://NapftDBA:hellonapftDBA@cluster0.oneh8cf.mongodb.net/?retryWrites=true&w=majority";
 export const PORT = 3000;

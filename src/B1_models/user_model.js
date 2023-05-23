@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-
+import connection from "../C1_config/database_config.js";
 const user_schema = mongoose.Schema({
     metamask_ID: { type: String, unique: true, required: true },
     user_name: { type: String, unique: false, required: false, default: "" },
@@ -28,5 +28,5 @@ const user_schema = mongoose.Schema({
     },
 });
 
-const user_model = mongoose.model("User", user_schema);
+const user_model = connection.model("User", user_schema);
 export default user_model;
