@@ -4,8 +4,8 @@ import tf, { browser, div, log, mod } from '@tensorflow/tfjs-node';
 import { loadLayersModel } from '@tensorflow/tfjs-node';
 
 async function loadModel() {
-    const modelPath = './resnet50_model_tfjs';
-    const model = await loadLayersModel(`file://${modelPath}/model.json`);
+    const modelPath = './deep_learning/resnet50_model_tfjs/model.json';
+    const model = await loadLayersModel(`file://${modelPath}`);
     console.log('Model loaded successfully');
     return model;
 }
