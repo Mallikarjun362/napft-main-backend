@@ -128,7 +128,16 @@ export async function get_range_of_nfts(req, res) {
     }
 }
 export async function create(req, res) {
-    /* DESCRIPTION : 
+    /* DESCRIPTION :
+    * Expected Input :
+        nft = {
+            IPFS_hash
+            NFT_token_ID
+            title
+            creator_metamask_ID
+            owner_metamask_ID
+            price
+        } 
     * VISIBILITY : 
         INTENDED = Protected
         Current = Public
@@ -176,6 +185,7 @@ export async function create(req, res) {
     // 1. The user needs to be authenticated to create an NFT
     // 2. needs to provide the required information of an NFT
     // T3
+    // return res.send(nft);
     try {
         const new_nft_instance = new NFT_model({
             IPFS_hash: nft.IPFS_hash, // Required
@@ -207,7 +217,6 @@ export async function create(req, res) {
         });
         // Saving NFT to the database
         new_nft_instance.save().then((response) => {
-            // 1. Call Django Server for Image Embedding generation
             res.status(200).json({ message: `NFT Successfully Saved in Database ${nft.title}`, });
         }).catch((err) => {
             res.status(400).send(`Error Occured while storing in data base, ${err}`);
