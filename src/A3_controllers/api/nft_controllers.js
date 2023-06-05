@@ -1,4 +1,4 @@
-import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
+// import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
 import NFT_model from "../../B1_models/nft_model.js";
 import { django_rs_endpoint_url } from '../../C2_utils/constants.js';
 import { generate_recomendations, getDifferenceInDaysFromNow } from "../../C2_utils/higher_level_functions.js";
@@ -167,10 +167,11 @@ export async function create(req, res) {
     }
     // T2
     try {
-        // nft.resnet50_lantent_space_vector = await axios.post(django_rs_endpoint_url, { image_URL: "https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash }).then((response) => response.data.embeddings);
-        nft.resnet50_lantent_space_vector = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash);
+        nft.resnet50_lantent_space_vector = await axios.post(django_rs_endpoint_url, { image_URL: "https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash }).then((response) => response.data.embeddings);
+        // nft.resnet50_lantent_space_vector = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash);
     } catch (err) {
-        return res.status(400).send(`Error Generating embeddings ${err}`);
+        nft.resnet50_lantent_space_vector = [];
+        // return res.status(400).send(`Error Generating embeddings ${err}`);
     }
     // 1. The user needs to be authenticated to create an NFT
     // 2. needs to provide the required information of an NFT
