@@ -1,9 +1,10 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import connection from "../C1_config/database_config.js";
 const user_schema = mongoose.Schema({
     metamask_ID: { type: String, unique: true, required: true },
+    meta_data: { nounce: String, account_type: "PENDING" | "VERIFIED" },
     user_name: { type: String, unique: false, required: false, default: "" },
-    user_profile_pic: Buffer,
+    user_profile_pic: { type: Buffer },
     user_bio: { type: String, default: "" },
     date_joined: { type: Date, default: Date.now },
     resent_transactions: {

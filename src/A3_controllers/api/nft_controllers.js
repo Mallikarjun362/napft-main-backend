@@ -1,10 +1,10 @@
-// import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
+import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
 import NFT_model from "../../B1_models/nft_model.js";
 import { django_rs_endpoint_url } from '../../C2_utils/constants.js';
-import { generate_recomendations, getDifferenceInDaysFromNow } from "../../C2_utils/higher_level_functions.js";
+import { generate_recomendations, getDifferenceInDaysFromNow, getMostRecent } from "../../C2_utils/higher_level_functions.js";
 import axios from 'axios';
 
-
+// CONTROLLER =======================================================================================================================
 export async function get_single_nft_detail(req, res) {
     // console.log(req.body);
     /* DESCRIPTION :
@@ -21,16 +21,12 @@ export async function get_single_nft_detail(req, res) {
     // Query Information
     try {
         const query = await NFT_model.findOne({ NFT_token_ID: req.body?.NFT_token_ID }).exec();
-        // console.log(query);
         // Start Recommendations
         let recommendations_list = null
-        if (query?.section_services_info.resnet50_lantent_space_vector == []) {
-            // console.log("Empty Vector");
+        if (query?.section_services_info.resnet50_lantent_space_vector.length === 0) {
             recommendations_list = [];
         } else {
-            // console.log("Valid Array", query?.section_services_info.resnet50_lantent_space_vector.length);
             if (query?.section_services_info.cached_resnet50_recommendations.length === 0) {
-                // console.log("Recommendations List is empty");
                 let input = {
                     vec: query?.section_services_info.resnet50_lantent_space_vector,
                     NFT_token_ID: query?.NFT_token_ID,
@@ -54,10 +50,13 @@ export async function get_single_nft_detail(req, res) {
                 recommendations_list = recc_obj.recommendations;
                 // DONE 
             } else {
-                let most_recent_recommendations_object = query?.section_services_info.cached_resnet50_recommendations[0];
+                let most_recent_recommendations_object = getMostRecent({ lst: query?.section_services_info.cached_resnet50_recommendations });
+                // console.log("MILESTONE - 1");
+                // console.log(most_recent_recommendations_object);
                 if (getDifferenceInDaysFromNow(most_recent_recommendations_object.created_on) >= 30) {
                     console.log("Most recent Recommendations Expired !!!");
                     // Generate new recomendations object
+                    recommendations_list = most_recent_recommendations_object.recommendations;
                     // and append it to the Main nft Object
                     // Save it to the database
                     // Handle it Later
@@ -92,9 +91,11 @@ export async function get_single_nft_detail(req, res) {
         // Final Sending "nft", "Lits of recommended nfts"
         return res.status(200).json({ nft, recommendations: retrieved_rec });
     } catch (err) {
+        console.log(err);
         return res.status(400).json({ message: "ERROR Occured " });
     }
 }
+// CONTROLLER =======================================================================================================================
 export async function get_range_of_nfts(req, res) {
     /* DESCRIPTION :
     * VISIBILITY :
@@ -151,6 +152,7 @@ export async function create(req, res) {
     // T1
     try {
         const ele = req.body.nft;
+        // console.log(ele);
         // trying to create a valid NFT databse Object
         nft = {
             // base data cleaning
@@ -166,7 +168,7 @@ export async function create(req, res) {
             media_type: ele.media_type ? ele.media_type : 'image',
             description: ele.description ? ele.description : "",
             date_created: ele.date_created ? Date(ele.date_created) : Date.now(),
-            tags: ele.tags ? ele.tags : [],
+            tags: ele.tags ? ele.tags.split(",") : [],
             // derived data
             price_timeline: [{ timestamp: Date(ele.date_created), price: ele.price, }],
             transaction_history: [{ metamask_ID: ele.creator_metamask_ID, timestamp: Date(ele.date_created) }],
@@ -176,7 +178,9 @@ export async function create(req, res) {
     }
     // T2
     try {
+        // OPTION 1 : DJANGO / TENSORFLOW
         nft.resnet50_lantent_space_vector = await axios.post(django_rs_endpoint_url, { image_URL: "https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash }).then((response) => response.data.embeddings);
+        // OPTION 2 : TENSORFLOW.JS
         // nft.resnet50_lantent_space_vector = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + nft.IPFS_hash);
     } catch (err) {
         nft.resnet50_lantent_space_vector = [];
@@ -225,7 +229,52 @@ export async function create(req, res) {
         res.status(400).send("Error Occured in try-catch block 2");
     }
 }
-export function update(req, res) { }
+export function update(req, res) {
+    // INPUT REQUIRED
+    // 1. TITLE
+    // 2. TAGS
+    // 3. DESCRIPTION
+    // 4. NFT TOKEN ID
+    // console.log(req.body);
+    let isSuccess = false;
+    let msg = 'NONE';
+    let input = {}
+    try {
+        input = {
+            title: req.body.title,
+            tags: req.body.tags.split(","),
+            description: req.body.description,
+            NFT_token_ID: req.body.NFT_token_ID,
+        }
+    } catch (err) {
+        return res.status(400).send({ msg: "INCORRECT INPUT" })
+    }
+    // 
+    NFT_model.findOne({ NFT_token_ID: input.NFT_token_ID }).then((result) => {
+        // console.log(result);
+        result.section_basic_info.title = input.title;
+        result.section_basic_info.description = input.description;
+        result.section_additional_info.tags = input.tags;
+        result.save().then(() => {
+            isSuccess = true;
+            msg = "UPDATE SUCCESS";
+            return res.status(200).send({ msg });
+        }).catch((err) => {
+            isSuccess = false;
+            msg = "SAVING TO DATABASE FAILED";
+            return res.status(400).send({ msg });
+        });
+    }).catch((err) => {
+        isSuccess = false;
+        msg = "ERROR IN RETRIEVING DOCUMENT";
+        return res.status(400).send({ msg });
+    })
+    // if (isSuccess) {
+    //     return res.status(200).send({ msg });
+    // } else {
+    //     return res.status(400).send({ msg });
+    // }
+}
 export async function like(req, res) {
     /* DESCRIPTION : 
     * VISIBILITY : 
@@ -237,8 +286,8 @@ export async function like(req, res) {
         {NFT Object}
     */
     const input = {
-        NFT_token_ID: req.body.ID,
-        user_metamask_ID: null,
+        NFT_token_ID: req.body.NFT_token_ID,
+        user_metamask_ID: req.body.user_metamask_ID,
     };
     try {
         const query = await NFT_model.findOneAndUpdate({ _id: input.NFT_token_ID }, { $inc: { 'section_additional_info.votes_count': 1 } }).exec();
@@ -263,14 +312,21 @@ export async function change_visibility(req, res) {
     }
 }
 export function comment(req, res) {
+    // + USER VERIFICATION (PROTECTED ROUTE)
+    // REQUIRED INPUT
+    // 1. NFT TOKEN ID
+    // 2. USER METAMASK ID
+    // 3. COMMENT CONTENT
     const input = {
-        NFT_token_ID: req.body.ID,
-        comment_content: req.body?.content,
+        NFT_token_ID: req.body.NFT_token_ID,
+        comment_content: req.body?.comment_content,
         user_metamask_ID: req.body?.user_metamask_ID,
     };
+    // console.log(input);
+    // return res.status(200).send({ msg: "SUCCESS" })
     try {
         NFT_model.updateOne(
-            { _id: input.NFT_token_ID },
+            { NFT_token_ID: input.NFT_token_ID },
             {
                 $push: {
                     "section_additional_info.comments": {
@@ -281,7 +337,8 @@ export function comment(req, res) {
                 }
             }).then(() => {
                 res.status(200).json({ message: "Comment added successful" });
-            }).catch(() => {
+            }).catch((err) => {
+                // console.log(err);
                 res.status(400).json({ message: "Comment added unsuccessful" });
             });
     } catch (err) {
@@ -311,4 +368,43 @@ export function delete_comment(req, res) {
     } catch (err) {
         res.status(400).json({ message: "Adding deleted unsuccessful 2" });
     }
+}
+
+export function generate_embeddings(req, res) {
+    // REQUIRED INPUT
+    // 1. NFT TOKEN ID
+    NFT_model.findOne({ NFT_token_ID: req.body.NFT_token_ID }).then(async (result) => {
+        try {
+            // UPDATE => EMBEDDING
+            if (result.section_services_info.resnet50_lantent_space_vector.length === 0) {
+                const vec = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + result.IPFS_hash);
+                if (vec.length === 0) {
+                    return res.status(400).send({ msg: "FORMAT NOT POSSIBLE" });
+                }
+                result.section_services_info.resnet50_lantent_space_vector = vec;
+                console.log("NEWLY GENERATE EMBEDDINGS");
+            }
+            const recc_obj = {
+                recommendations: await generate_recomendations({ vec: result.section_services_info.resnet50_lantent_space_vector, NFT_token_ID: result.NFT_token_ID }),
+                created_on: Date.now(),
+            }
+            // UPDATE => RECOMMENDATIONS
+            if (result.section_services_info.cached_resnet50_recommendations.length >= 10) {
+                result.section_services_info.cached_resnet50_recommendations.shift()
+                result.section_services_info.cached_resnet50_recommendations.push(recc_obj)
+            } else {
+                result.section_services_info.cached_resnet50_recommendations.push(recc_obj)
+            }
+            // SAVE AND SEND ACKNOLEDGEMENT
+            result.save().then(() => {
+                return res.status(200).send({ msg: "DONE" });
+            }).catch((err) => {
+                return res.status(400).send({ msg: "SAVE UNSUCCESSFUL" });
+            })
+        } catch (err) {
+            return res.status(400).send({ err: "ERR 1" });
+        }
+    }).catch((err) => {
+        return res.status(400).send({ err: "ERR 2" });
+    });
 }

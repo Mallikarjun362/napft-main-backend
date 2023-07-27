@@ -31,6 +31,7 @@ The NFT model contains these 5 sections
     1. resnet50_lantent_space_vector: Array of latent space representation
     2. cached_resnet50_recommendations: Array of other nft referances
 */
+// `IPFS_hash NFT_token_ID section_price_info section_basic_info`
 
 const NFT_schema = new mongoose.Schema({
     IPFS_hash: { type: String, required: true },

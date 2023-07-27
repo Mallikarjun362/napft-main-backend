@@ -13,7 +13,8 @@ const model = await loadModel();
 
 export async function getEmbeddings(url) {
     try {
-        const response = await axios.get(url, { responseType: 'arraybuffer' });
+        // console.log(url);
+        const response = await axios.get(url, { responseType: 'arraybuffer', headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36' } });
         const buffer = Buffer.from(response.data, 'binary');
         const img = await loadImage(buffer);
         const canvas = createCanvas(224, 224);
@@ -32,7 +33,8 @@ export async function getEmbeddings(url) {
         const normalizedEmbeddings = embeddingsArray.map((value) => value / norm);
         return normalizedEmbeddings;
     } catch (error) {
-        console.error(error);
+        // console.error(error);
+        console.log("ERROR AT GET-EMBEDDINGS IN DEEP-LEARNING");
         return [];
     }
 }
