@@ -1,5 +1,6 @@
 import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
 import NFT_model from "../../B1_models/nft_model.js";
+import user_model from "../../B1_models/user_model.js";
 import { django_rs_endpoint_url } from '../../C2_utils/constants.js';
 import { generate_recomendations, getDifferenceInDaysFromNow, getMostRecent } from "../../C2_utils/higher_level_functions.js";
 import axios from 'axios';
@@ -19,6 +20,7 @@ export async function get_single_nft_detail(req, res) {
         {NFT Object}
     */
     // Query Information
+    // console.log(req.body);
     try {
         const query = await NFT_model.findOne({ NFT_token_ID: req.body?.NFT_token_ID }).exec();
         // Start Recommendations
@@ -70,6 +72,8 @@ export async function get_single_nft_detail(req, res) {
                 }
             }
         }
+        // Updating total_view_count
+        await NFT_model.updateOne({ NFT_token_ID: req.body?.NFT_token_ID }, { $inc: { 'section_additional_info.total_view_count': 1 } }).exec();
         // console.log("Final List:", recommendations_list.length);
         let recc_obj = {}
         for (let ele of recommendations_list) {
@@ -79,14 +83,30 @@ export async function get_single_nft_detail(req, res) {
         // console.log("Number of Recommendations", retrieved_rec.length);
         retrieved_rec.sort((a, b) => recc_obj[a.NFT_token_ID] - recc_obj[b.NFT_token_ID])
         // End Recommendations
-        const nft = {
+        let is_liked = false;
+        if (req.body.user_metamask_ID) {
+            is_liked = await user_model.findOne({ metamask_ID: req.body.user_metamask_ID, liked_nfts: { $in: req.body.NFT_token_ID } }).then((result) => {
+                if (result) {
+                    // EXISTS
+                    // console.log("LIKED");
+                    return true;
+                } else {
+                    // NOT EXISTS
+                    // console.log("NOT LIKED");
+                    return false;
+                }
+            });
+        }
+        let nft = {
             section_price_info: query?.section_price_info,
             section_basic_info: query?.section_basic_info,
             section_additional_info: query?.section_additional_info,
             _id: query?._id,
             IPFS_hash: query?.IPFS_hash,
             NFT_token_ID: query?.NFT_token_ID,
-            is_public: query.is_public
+            is_public: query.is_public,
+            // USER SPECIFIC INFO
+            is_liked,
         }
         // Final Sending "nft", "Lits of recommended nfts"
         return res.status(200).json({ nft, recommendations: retrieved_rec });
@@ -97,7 +117,7 @@ export async function get_single_nft_detail(req, res) {
 }
 // CONTROLLER =======================================================================================================================
 export async function get_range_of_nfts(req, res) {
-    /* DESCRIPTION :
+    /* DESCRIPTION : 
     * VISIBILITY :
         INTENDED = CURRENT = Public
         Any one can access the basic details of the NFT
@@ -168,7 +188,7 @@ export async function create(req, res) {
             media_type: ele.media_type ? ele.media_type : 'image',
             description: ele.description ? ele.description : "",
             date_created: ele.date_created ? Date(ele.date_created) : Date.now(),
-            tags: ele.tags ? ele.tags.split(",") : [],
+            tags: ele.tags ? ele?.tags : [],
             // derived data
             price_timeline: [{ timestamp: Date(ele.date_created), price: ele.price, }],
             transaction_history: [{ metamask_ID: ele.creator_metamask_ID, timestamp: Date(ele.date_created) }],
@@ -275,6 +295,7 @@ export function update(req, res) {
     //     return res.status(400).send({ msg });
     // }
 }
+// ======================================================================================================================================================================
 export async function like(req, res) {
     /* DESCRIPTION : 
     * VISIBILITY : 
@@ -282,7 +303,17 @@ export async function like(req, res) {
         Requires the authenticity of the user.
     * INPUTS REQUIRED : 
         1. NFT Token ID 
-    * OUTPUTS : 
+        2. user_metamask_ID
+    * TASK :
+        if NFT_token_ID exists in liked_nfts:
+            remove it
+            and
+            deecrement the count
+        else: 
+            add it
+            and
+            increment the count
+    * OUTPUTS :
         {NFT Object}
     */
     const input = {
@@ -290,12 +321,47 @@ export async function like(req, res) {
         user_metamask_ID: req.body.user_metamask_ID,
     };
     try {
-        const query = await NFT_model.findOneAndUpdate({ _id: input.NFT_token_ID }, { $inc: { 'section_additional_info.votes_count': 1 } }).exec();
-        res.status(200).json({ message: "Successfully liked nft" });
+        user_model.findOne({ metamask_ID: input.user_metamask_ID, liked_nfts: { $in: input.NFT_token_ID } }, (err, result) => {
+            if (err) {
+                res.status(400).json({ message: "NFT like unsuccessful", err });
+            } else {
+                if (result) {
+                    // EXISTS
+                    // UN-LIKE START ---------------------------------------------------------------
+                    user_model.updateOne(
+                        { metamask_ID: input.user_metamask_ID },
+                        { $pull: { liked_nfts: input.NFT_token_ID } }
+                    )
+                        .then(() => {
+                            NFT_model.updateOne({ NFT_token_ID: input.NFT_token_ID }, { $inc: { 'section_additional_info.votes_count': -1 } }).then(() => {
+                                res.status(200).json({ message: "Successfully in-liked nft" })
+                            });
+                        })
+                        .catch(() => res.status(400).json({ message: "NFT un-like unsuccessful", err }));
+                    // ------------------------------------------------------------------------------
+                } else {
+                    // NOT EXISTS
+                    // LIKE START ---------------------------------------------------------------
+                    user_model.updateOne(
+                        { metamask_ID: input.user_metamask_ID },
+                        { $push: { liked_nfts: input.NFT_token_ID } }
+                    )
+                        .then(() => {
+                            NFT_model.updateOne({ NFT_token_ID: input.NFT_token_ID }, { $inc: { 'section_additional_info.votes_count': 1 } }).then(() => {
+                                res.status(200).json({ message: "Successfully liked nft" });
+                            });
+                        })
+                        .catch(() => res.status(400).json({ message: "NFT like unsuccessful", err }));
+                }
+            }
+        });
+        // const query = await NFT_model.findOneAndUpdate({ _id: input.NFT_token_ID }, { $inc: { 'section_additional_info.votes_count': 1 } }).exec();
+        // res.status(200).json({ message: "Successfully liked nft" });
     } catch (err) {
         res.status(400).json({ message: "NFT like unsuccessful", err });
     }
 }
+// ======================================================================================================================================================================
 export function buy(req, res) { }
 export async function change_visibility(req, res) {
     try {
@@ -407,4 +473,14 @@ export function generate_embeddings(req, res) {
     }).catch((err) => {
         return res.status(400).send({ err: "ERR 2" });
     });
+}
+
+export async function get_recent_nfts(req, res) {
+    // REQUIRED INPUT
+    const result = await NFT_model.find()
+        .sort({ NFT_token_ID: -1 }) // Sort by createdAt field in descending order (recently created first)
+        .limit(3) // Limit the results to 4 documents
+        .exec();
+    // console.log(result);
+    return res.status(200).send({ recent_nfts: result });
 }

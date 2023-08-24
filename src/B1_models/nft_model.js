@@ -66,6 +66,7 @@ const NFT_schema = new mongoose.Schema({
     section_additional_info: {
         tags: { type: [String], default: [] },
         votes_count: { type: Number, default: 0 },
+        total_view_count: { type: Number, default: 0 },
         views: { type: [{ date: Date, count: Number }], default: [] },
         comments: {
             type: [{

@@ -24,7 +24,8 @@ const user_schema = mongoose.Schema({
         }]
     },
     liked_nfts: {
-        type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NFT' }],
+        // type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'NFT' }],
+        type: [Number],
         default: [],
     },
 });
