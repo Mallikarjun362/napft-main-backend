@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { jwt_secret_key } from "../C2_utils/constants.js";
+import { jwt_secret_key } from "../utils/constants.js";
 // MIDDLEWARE TO AUTHORIZE USER IN PROTECTED ROUTE
 // PURPOSE? => REQUESTS WHICH REQUIRE A USER TO BE THE RIGHT SOURCE FOR THIS ACTION.
 // HOW? => VERIFY JWT IN THE REQUEST BODY

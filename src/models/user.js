@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import connection from "../C1_config/database_config.js";
+import connection from "../config/database.js";
 const user_schema = mongoose.Schema({
     metamask_ID: { type: String, unique: true, required: true },
     meta_data: { nounce: String, account_type: "PENDING" | "VERIFIED" },

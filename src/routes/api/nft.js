@@ -1,6 +1,6 @@
 import express from 'express';
-import { authorize_user } from '../../A2_middleware/authentication_middleware.js';
-import { get_single_nft_detail, get_range_of_nfts, get_recent_nfts, create, update, like, buy, change_visibility, comment, delete_comment, generate_embeddings } from '../../A3_controllers/api/nft_controllers.js';
+import { authorize_user } from '../../middleware/authentication.js';
+import { get_single_nft_detail, get_range_of_nfts, get_recent_nfts, create, update, like, buy, change_visibility, comment, delete_comment, generate_embeddings } from '../../controllers/api/nft.js';
 const router = express.Router();
 
 // RESOURCE = NFT

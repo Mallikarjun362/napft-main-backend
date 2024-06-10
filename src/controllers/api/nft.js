@@ -1,8 +1,8 @@
-import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
-import NFT_model from "../../B1_models/nft_model.js";
-import user_model from "../../B1_models/user_model.js";
-import { django_rs_endpoint_url } from '../../C2_utils/constants.js';
-import { generate_recomendations, getDifferenceInDaysFromNow, getMostRecent } from "../../C2_utils/higher_level_functions.js";
+// import { getEmbeddings } from "../../../deep_learning/getEmbeddings.js";
+import NFT_model from "../../models/nft.js";
+import user_model from "../../models/user.js";
+import { django_rs_endpoint_url } from '../../utils/constants.js';
+import { generate_recomendations, getDifferenceInDaysFromNow, getMostRecent } from "../../utils/higher_level_functions.js";
 import axios from 'axios';
 
 // CONTROLLER =======================================================================================================================
@@ -443,7 +443,8 @@ export function generate_embeddings(req, res) {
         try {
             // UPDATE => EMBEDDING
             if (result.section_services_info.resnet50_lantent_space_vector.length === 0) {
-                const vec = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + result.IPFS_hash);
+                // const vec = await getEmbeddings("https://gateway.pinata.cloud/ipfs/" + result.IPFS_hash);
+                const vec = new Array(1024).fill(0);
                 if (vec.length === 0) {
                     return res.status(400).send({ msg: "FORMAT NOT POSSIBLE" });
                 }

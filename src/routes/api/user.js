@@ -1,6 +1,6 @@
 import express from 'express';
-import { user_connect_1, user_connect_2, user_details_get, user_details_update, user_owned_nfts_get } from '../../A3_controllers/api/user_controllers.js';
-import { authorize_user } from '../../A2_middleware/authentication_middleware.js';
+import { user_connect_1, user_connect_2, user_details_get, user_details_update, user_owned_nfts_get } from '../../controllers/api/user.js';
+import { authorize_user } from '../../middleware/authentication.js';
 const router = express.Router();
 router.route('/').get((req, res) => res.json({ message: "This is a route to access User related information" })); // Simple
 router.route('/connect_1').post(user_connect_1); // Complex

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import connection from '../C1_config/database_config.js';
+import connection from '../config/database.js';
 // Field Validators
 const validate_price_timeline = (v) => v.length > 0;
 const validate_transaction_history = (v) => v.length > 0;

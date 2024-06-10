@@ -1,4 +1,4 @@
-import NFT_model from "../B1_models/nft_model.js";
+import NFT_model from "../models/nft.js";
 import { euclidean } from "ml-distance/lib/distances.js";
 
 export async function generate_recomendations({ vec = [], NFT_token_ID = [0] }) {

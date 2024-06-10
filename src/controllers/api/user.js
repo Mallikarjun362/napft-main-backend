@@ -1,9 +1,9 @@
-import user_model from "../../B1_models/user_model.js";
+import user_model from "../../models/user.js";
 import { v4 as uuidv4 } from "uuid";
-import { verifySignature } from "../../C2_utils/higher_level_functions.js";
-import { jwt_secret_key } from "../../C2_utils/constants.js";
+import { verifySignature } from "../../utils/higher_level_functions.js";
+import { jwt_secret_key } from "../../utils/constants.js";
 import jwt from "jsonwebtoken";
-import NFT_model from "../../B1_models/nft_model.js";
+import NFT_model from "../../models/nft.js";
 import Web3 from 'web3';
 
 
